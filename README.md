@@ -1,3 +1,6 @@
+![Ejemplo de imagen externa](https://assets.zabbix.com/dist/images/logo.fd87efa6da9bed3fd8c9.svg)
+
+
 # Nginx File Discovery Template for Zabbix
 
 ## Description
