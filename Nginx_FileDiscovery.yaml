@@ -1,0 +1,98 @@
+zabbix_export:
+  version: '6.0'
+  date: '2025-01-07T19:04:12Z'
+  groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: 5c3fec56a46a4b67aeb33ad6e95ffde0
+      template: Nginx_FileDiscovery
+      name: Nginx_FileDiscovery
+      description: 'Template discovery files'
+      groups:
+        - name: Templates
+      items:
+        - uuid: fa9151ce927544dd9d47ee1165c108d4
+          name: 'Nginx sites count'
+          key: 'vfs.dir.count[/etc/nginx/sites-enabled]'
+          delay: 180m
+          history: 15d
+          trends: '0'
+          tags:
+            - tag: Application
+              value: nginx
+          triggers:
+            - uuid: f4d0113c110c45a2b5860e7b59d5bb5e
+              expression: 'last(/Nginx_FileDiscovery/Nginx/vfs.dir.count[/etc/nginx/sites-enabled],#2)<>last(/Nginx_FileDiscovery/vfs.dir.count[/etc/nginx/sites-enabled],#1)'
+              recovery_mode: NONE
+              name: 'New files /etc/nginx/sites-enabled/'
+              priority: INFO
+              manual_close: 'YES'
+              tags:
+                - tag: Application
+                  value: nginx
+      discovery_rules:
+        - uuid: a0f4c7ed6db045d5bedbf9270724b4e1
+          name: 'Nginx conf.d discovery'
+          key: 'vfs.dir.get[{$FOLDER.CONFD}]'
+          delay: 180m
+          item_prototypes:
+            - uuid: 422bed1e0f6945bc8d525b8a7ab7803f
+              name: 'Nginx conf.d : {#NGINX.CONFD.BASENAME}'
+              key: 'vfs.file.md5sum[{#NGINX.CONFD.PATHNAME}]'
+              delay: 180m
+              trends: '0'
+              value_type: TEXT
+              tags:
+                - tag: Application
+                  value: nginx
+                - tag: conf.d
+                  value: '{#NGINX.CONFD.BASENAME}'
+              trigger_prototypes:
+                - uuid: 30399dde84b1440e922a941f7135fa63
+                  expression: 'last(/Nginx_FileDiscovery/vfs.file.md5sum[{#NGINX.CONFD.PATHNAME}],#1)<>last(/Nginx_FileDiscovery/vfs.file.md5sum[{#NGINX.CONFD.PATHNAME}],#2)'
+                  recovery_mode: NONE
+                  name: 'Nginx conf.d: {#NGINX.CONFD.BASENAME} has been changed'
+                  priority: INFO
+                  manual_close: 'YES'
+          lld_macro_paths:
+            - lld_macro: '{#NGINX.CONFD.BASENAME}'
+              path: $.basename
+            - lld_macro: '{#NGINX.CONFD.PATHNAME}'
+              path: $.pathname
+        - uuid: 369e166c15bc42a09fc4208ce3326764
+          name: 'Nginx sites discovery'
+          key: 'vfs.dir.get[{$FOLDER.SITES.ENABLED}]'
+          delay: 180m
+          item_prototypes:
+            - uuid: ad3b2a2d336f4285bef6eb9d34b4012e
+              name: 'Nginx Site : {#NGINX.BASENAME}'
+              key: 'vfs.file.md5sum[{#NGINX.PATHNAME}]'
+              delay: 180m
+              trends: '0'
+              value_type: TEXT
+              tags:
+                - tag: Application
+                  value: nginx
+                - tag: site-enabled
+                  value: '{#NGINX.BASENAME}'
+              trigger_prototypes:
+                - uuid: 752b4a842d5c47bd93bbe5a5ff826852
+                  expression: 'last(/Nginx_FileDiscovery/vfs.file.md5sum[{#NGINX.PATHNAME}],#1)<>last(/Nginx_FileDiscovery/vfs.file.md5sum[{#NGINX.PATHNAME}],#2)'
+                  recovery_mode: NONE
+                  name: 'Nginx Site : {#NGINX.BASENAME} has been changed'
+                  priority: INFO
+                  manual_close: 'YES'
+                  tags:
+                    - tag: Application
+                      value: nginx
+          lld_macro_paths:
+            - lld_macro: '{#NGINX.BASENAME}'
+              path: $.basename
+            - lld_macro: '{#NGINX.PATHNAME}'
+              path: $.pathname
+      macros:
+        - macro: '{$FOLDER.CONFD}'
+          value: /etc/nginx/conf.d/
+        - macro: '{$FOLDER.SITES.ENABLED}'
+          value: /etc/nginx/sites-enabled/
